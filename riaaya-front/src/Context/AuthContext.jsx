@@ -37,12 +37,11 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         setIsLoggedIn(true);
         setAuthToken(authToken?.accessToken);
-        setUser(setAuthToken(authToken?.user));
-        localStorage.setItem("isLoggedIn", true);
+        setUser(authToken?.user);  // ✅ Fixed this line
+        localStorage.setItem("isLoggedIn", "true");  // ✅ Should be string "true"
         localStorage.setItem("authToken", JSON.stringify(authToken?.accessToken));
         localStorage.setItem("user", JSON.stringify(authToken?.user));
         setLoading(false);
-
     }
 
     const logout = () => {
@@ -82,4 +81,5 @@ export const AuthProvider = ({ children }) => {
             {loading ? null : children}
         </AuthContext.Provider>
     )
+
 } 
