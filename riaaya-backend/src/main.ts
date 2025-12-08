@@ -3,11 +3,15 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // Dynamic CORS for development and production
   app.enableCors({
-    origin: 'http://localhost:5173', // autorise Vite
-    credentials: true,              // si tu envoies cookies ou headers auth
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+  console.log(`Application is running on: http://localhost:${port}`);
 }
 bootstrap();
