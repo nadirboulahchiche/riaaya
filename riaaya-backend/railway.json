@@ -9,17 +9,4 @@
     "restartPolicyMaxRetries": 10
   }
 }
-```
 
-#### **4. Update `.gitignore` in `riaaya-backend/`**
-
-Make sure it includes:
-```
-node_modules/
-dist/
-.env
-.env.local
-coverage/
-*.log
-.DS_Store
-generated/
