@@ -9,77 +9,80 @@ export const AuthContext = createContext({
 });
 
 export const AuthProvider = ({ children }) => {
-    const [isLoggedIn, setIsLoggedIn] = useState(() =>
-        localStorage.getItem("isLoggedIn") === "true"
-    );
-
-    const [authToken, setAuthToken] = useState(() => {
-        const token = localStorage.getItem("authToken");
-        try {
-            return token ? JSON.parse(token) : null;
-        } catch {
-            return null;
-        }
-    });
-
-    const [user, setUser] = useState(() => {
-        const userData = localStorage.getItem("user");
-        try {
-            return userData ? JSON.parse(userData) : null;
-        } catch {
-            return null;
-        }
-    });
-
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [authToken, setAuthToken] = useState(null);
+    const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const login = (authToken) => {
-        setLoading(true);
-        setIsLoggedIn(true);
-        setAuthToken(authToken?.accessToken);
-        setUser(authToken?.user);  // ✅ Fixed this line
-        localStorage.setItem("isLoggedIn", "true");  // ✅ Should be string "true"
-        localStorage.setItem("authToken", JSON.stringify(authToken?.accessToken));
-        localStorage.setItem("user", JSON.stringify(authToken?.user));
-        setLoading(false);
+    // Initialize from localStorage after component mounts
+    useEffect(() => {
+        try {
+            const storedIsLoggedIn = localStorage.getItem("isLoggedIn");
+            const storedToken = localStorage.getItem("authToken");
+            const storedUser = localStorage.getItem("user");
+
+            if (storedIsLoggedIn === "true" && storedToken) {
+                setIsLoggedIn(true);
+                setAuthToken(JSON.parse(storedToken));
+                setUser(storedUser ? JSON.parse(storedUser) : null);
+            }
+        } catch (error) {
+            console.error("Error reading from localStorage:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const login = (authData) => {
+        try {
+            setIsLoggedIn(true);
+            setAuthToken(authData?.accessToken);
+            setUser(authData?.user);
+            
+            localStorage.setItem("isLoggedIn", "true");
+            localStorage.setItem("authToken", JSON.stringify(authData?.accessToken));
+            localStorage.setItem("user", JSON.stringify(authData?.user));
+        } catch (error) {
+            console.error("Error during login:", error);
+        }
     }
 
     const logout = () => {
         setIsLoggedIn(false);
         setAuthToken(null);
+        setUser(null);
+        
         localStorage.removeItem("isLoggedIn");
         localStorage.removeItem("authToken");
         localStorage.removeItem("user");
     }
 
+    // Auto logout after ~23 hours
     useEffect(() => {
+        if (!authToken) return;
 
-        if (loading) {
-            setLoading(false);
-        }
-
-        let interval = setInterval(() => {
-            if (authToken) {
-                logout();
-            }
-        }, 82800000)
+        const interval = setInterval(() => {
+            logout();
+        }, 82800000); // 23 hours
 
         return () => clearInterval(interval);
-    }, [authToken, loading])
-
+    }, [authToken]);
 
     const value = {
-        isLoggedIn: isLoggedIn,
-        authToken: authToken,
-        user: user,
-        login: login,
-        logout: logout
+        isLoggedIn,
+        authToken,
+        user,
+        login,
+        logout
+    }
+
+    if (loading) {
+        return null; // or a loading spinner
     }
 
     return (
         <AuthContext.Provider value={value}>
-            {loading ? null : children}
+            {children}
         </AuthContext.Provider>
     )
-
-} 
+}
