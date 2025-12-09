@@ -129,7 +129,7 @@ const Doctors = () => {
         </div>
 
         {/* Modal */}
-        <Modal doctorimg={e.img} doctor={selectedDoctor} onClose={() => setSelectedDoctor(null)} />
+        <Modal doctorimg={img} doctor={selectedDoctor} onClose={() => setSelectedDoctor(null)} />
       </div>
     );
   };
