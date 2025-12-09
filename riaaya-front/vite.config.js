@@ -6,7 +6,7 @@ export default defineConfig({
   base: '/',
   build: {
     outDir: 'dist',
-    minify: false, // Disable minification to avoid syntax errors
+    minify: false,
     sourcemap: true,
     rollupOptions: {
       output: {
@@ -21,6 +21,10 @@ export default defineConfig({
   preview: {
     port: process.env.PORT || 5173,
     host: '0.0.0.0',
-    strictPort: false
+    strictPort: false,
+    allowedHosts: [
+      'handsome-courtesy-production.up.railway.app',
+      '.railway.app'
+    ]
   }
 })
