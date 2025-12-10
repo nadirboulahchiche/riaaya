@@ -32,15 +32,15 @@ export default function Modal({ doctorimg, doctor, onClose }) {
         doctorId: doctor.id,
       };
 
-      const appointmentResponse = await createAppointment(appointmentData);
-      console.log('Appointment created:', appointmentResponse);
-
-      // Step 2: Register payment with SATIM
-      const paymentData = {
-        amount: parseFloat(form.amount),
-        appointmentId: appointmentResponse.data.id, // Get appointment ID from response
-        language: 'fr'
-      };
+    const appointmentResponse = await createAppointment(appointmentData);
+    console.log('Appointment created:', appointmentResponse);
+    
+    // Step 2: Register payment with SATIM
+    const paymentData = {
+      amount: parseFloat(form.amount),
+      appointmentId: appointmentResponse.id, // ✅ CORRECT - response is direct object
+      language: 'fr'
+    };
 
       const paymentResponse = await fetch(`${API_URL}/payment/register`, {
         method: 'POST',
@@ -207,3 +207,4 @@ export default function Modal({ doctorimg, doctor, onClose }) {
     </div>
   );
 }
+
