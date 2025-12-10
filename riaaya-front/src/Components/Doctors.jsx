@@ -11,12 +11,12 @@ import {
   Typography,
 } from "@material-tailwind/react";
 
-import doc1 from "../assets/img/garde malade.jpg";
-import doc2 from "../assets/img/doc2.jpg";
-import doc3 from "../assets/img/doc3.jpg";
-import doc4 from "../assets/img/doc4.jpg";
-import doc5 from "../assets/img/doc5.jpg";
-import doc6 from "../assets/img/doc6.jpg";
+const doc1 = "/img/garde malade.jpg";
+const doc2 = "/img/doc2.jpg";
+const doc3 = "/img/doc3.jpg";
+const doc4 = "/img/doc4.jpg";
+const doc5 = "/img/doc5.jpg";
+const doc6 = "/img/doc6.jpg";
 import { getDoctors } from "../Api/apiRequest";
 
 const Doctors = () => {
