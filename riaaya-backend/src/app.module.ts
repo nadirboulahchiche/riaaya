@@ -5,9 +5,16 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { DoctorsModule } from './doctors/doctors.module';
 import { AppointmentModule } from './appointment/appointment.module';
+import { PaymentModule } from './payment/payment.module'; // ADD THIS
 
 @Module({
-  imports: [AuthModule, UsersModule, DoctorsModule, AppointmentModule],
+  imports: [
+    AuthModule, 
+    UsersModule, 
+    DoctorsModule, 
+    AppointmentModule,
+    PaymentModule // ADD THIS
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
