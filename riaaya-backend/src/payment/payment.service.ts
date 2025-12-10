@@ -6,32 +6,36 @@ import { RegisterPaymentDto } from './dto/register-payment.dto';
 @Injectable()
 export class PaymentService {
   private readonly satimConfig = {
-    baseUrl: process.env.SATIM_BASE_URL,
-    registerUrl: process.env.SATIM_REGISTER_URL,
-    confirmUrl: process.env.SATIM_CONFIRM_URL,
-    userName: process.env.SATIM_USERNAME,
-    password: process.env.SATIM_PASSWORD,
-    currency: '012', // DZD
-    returnUrl: process.env.PAYMENT_RETURN_URL,
-    failUrl: process.env.PAYMENT_FAIL_URL,
+    baseUrl: process.env.SATIM_BASE_URL || '',
+    registerUrl: process.env.SATIM_REGISTER_URL || '',
+    confirmUrl: process.env.SATIM_CONFIRM_URL || '',
+    userName: process.env.SATIM_USERNAME || '',
+    password: process.env.SATIM_PASSWORD || '',
+    currency: '012',
+    returnUrl: process.env.PAYMENT_RETURN_URL || '',
+    failUrl: process.env.PAYMENT_FAIL_URL || '',
     jsonParams: {
-      force_terminal_id: process.env.SATIM_TERMINAL_ID,
-      udf1: process.env.SATIM_UDF1,
-      udf5: process.env.SATIM_UDF5,
+      force_terminal_id: process.env.SATIM_TERMINAL_ID || '',
+      udf1: process.env.SATIM_UDF1 || '',
+      udf5: process.env.SATIM_UDF5 || '',
     },
   };
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {
+    if (!process.env.SATIM_USERNAME || !process.env.SATIM_PASSWORD) {
+      throw new Error('SATIM credentials not configured');
+    }
+    if (!process.env.SATIM_REGISTER_URL || !process.env.SATIM_CONFIRM_URL) {
+      throw new Error('SATIM URLs not configured');
+    }
+  }
 
-  // Generate 10-digit order number
   private generateOrderNumber(): string {
     return Date.now().toString().slice(-10);
   }
 
-  // Register payment with SATIM
   async registerPayment(dto: RegisterPaymentDto) {
     try {
-      // Validate appointment exists
       const appointment = await this.prisma.appointment.findUnique({
         where: { id: dto.appointmentId },
         include: { doctor: true }
@@ -41,18 +45,12 @@ export class PaymentService {
         throw new BadRequestException('Appointment not found');
       }
 
-      // Generate order number
       const orderNumber = this.generateOrderNumber();
-
-      // Convert to centimes
       const amountInCentimes = Math.round(dto.amount * 100);
-
-      // Build return URLs with language
       const language = dto.language || 'fr';
       const returnUrl = `${this.satimConfig.returnUrl}?appointmentId=${dto.appointmentId}&language=${language}`;
       const failUrl = `${this.satimConfig.failUrl}?appointmentId=${dto.appointmentId}&language=${language}`;
 
-      // SATIM register.do params
       const params = {
         currency: this.satimConfig.currency,
         amount: amountInCentimes,
@@ -69,7 +67,6 @@ export class PaymentService {
       console.log('Order Number:', orderNumber);
       console.log('Amount:', amountInCentimes, 'centimes');
 
-      // Call SATIM API
       const response = await axios.get(this.satimConfig.registerUrl, { params });
 
       console.log('✅ SATIM Response:', response.data);
@@ -78,13 +75,9 @@ export class PaymentService {
         throw new BadRequestException('Payment registration failed');
       }
 
-      // Store payment info in appointment
       await this.prisma.appointment.update({
         where: { id: dto.appointmentId },
-        data: {
-          status: 'PAYMENT_PENDING',
-          // You might want to add payment fields to Appointment model
-        },
+        data: { status: 'PAYMENT_PENDING' },
       });
 
       return {
@@ -99,12 +92,10 @@ export class PaymentService {
     }
   }
 
-  // Confirm payment and update appointment
   async confirmPayment(orderId: string, appointmentId: string, language: string) {
     try {
       console.log('🔵 Confirming payment...', orderId);
 
-      // Call SATIM acknowledgeTransaction.do
       const params = {
         language: language.toUpperCase(),
         orderId: orderId,
@@ -119,16 +110,11 @@ export class PaymentService {
       const respCode = response.data.params?.respCode || '';
       const errorCode = response.data.ErrorCode || '';
       const orderStatus = response.data.OrderStatus || '';
-
-      // Check if payment is successful
       const isSuccess = respCode === '00' && errorCode === '0' && orderStatus === '2';
 
-      // Update appointment status
       await this.prisma.appointment.update({
         where: { id: appointmentId },
-        data: {
-          status: isSuccess ? 'ACCEPTED' : 'REFUSED',
-        },
+        data: { status: isSuccess ? 'ACCEPTED' : 'REFUSED' },
       });
 
       return {
@@ -151,10 +137,8 @@ export class PaymentService {
     }
   }
 
-  // Handle failed payment
   async handleFailedPayment(orderId: string, appointmentId: string, language: string) {
     try {
-      // Try to get payment details
       const params = {
         language: language.toUpperCase(),
         orderId: orderId,
@@ -164,7 +148,6 @@ export class PaymentService {
 
       const response = await axios.get(this.satimConfig.confirmUrl, { params });
 
-      // Update appointment to REFUSED
       await this.prisma.appointment.update({
         where: { id: appointmentId },
         data: { status: 'REFUSED' },
