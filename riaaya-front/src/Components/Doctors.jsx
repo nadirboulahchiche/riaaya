@@ -91,7 +91,7 @@ const Doctors = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.2 }}
                 className="w-72 mx-auto cursor-pointer"
-                onClick={() => {setSelectedDoctor(e);selectedimg(data[index].img)}}
+                onClick={() => {setSelectedDoctor(e);selectedimg(e.imagePath)}}
               >
                 <Card className="rounded-xl shadow-md hover:shadow-xl bg-white dark:bg-gray-800 transition-shadow duration-300 my-3">
                   <CardHeader className="rounded-xl overflow-hidden aspect-square relative mt-5">
