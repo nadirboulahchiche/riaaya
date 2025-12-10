@@ -27,6 +27,7 @@ export default function AppRoutes() {
       </Route>
       
       <Route path="/payment-result" element={<PaymentResult />} />
+      <Route path="/payment/callback" element={<PaymentResult />} />
       
       <Route element={<PrivateRoute />}>
         <Route path="/dashboard" />
@@ -72,4 +73,5 @@ export default function AppRoutes() {
     </Routes >
   );
 }
+
 
