@@ -23,7 +23,7 @@ export default defineConfig({
     host: '0.0.0.0',
     strictPort: false,
     allowedHosts: [
-      'handsome-courtesy-production.up.railway.app',
+      'riaaya.up.railway.app',
       '.railway.app'
     ]
   }
