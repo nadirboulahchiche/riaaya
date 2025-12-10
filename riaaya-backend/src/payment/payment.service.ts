@@ -92,50 +92,58 @@ export class PaymentService {
     }
   }
 
-  async confirmPayment(orderId: string, appointmentId: string, language: string) {
-    try {
-      console.log('🔵 Confirming payment...', orderId);
+async confirmPayment(orderId: string, appointmentId: string, language: string) {
+  try {
+    console.log('🔵 Confirming payment...', orderId);
 
-      const params = {
-        language: language.toUpperCase(),
-        orderId: orderId,
-        password: this.satimConfig.password,
-        userName: this.satimConfig.userName,
-      };
+    const params = {
+      language: language.toUpperCase(),
+      orderId: orderId,
+      password: this.satimConfig.password,
+      userName: this.satimConfig.userName,
+    };
 
-      const response = await axios.get(this.satimConfig.confirmUrl, { params });
+    const response = await axios.get(this.satimConfig.confirmUrl, { params });
 
-      console.log('✅ SATIM Confirmation:', response.data);
+    console.log('✅ SATIM Confirmation Response:', JSON.stringify(response.data, null, 2));
 
-      const respCode = response.data.params?.respCode || '';
-      const errorCode = response.data.ErrorCode || '';
-      const orderStatus = response.data.OrderStatus || '';
-      const isSuccess = respCode === '00' && errorCode === '0' && orderStatus === '2';
+    // Extract values from response
+    const respCode = response.data.params?.respCode || response.data.respCode || '';
+    const errorCode = response.data.ErrorCode || response.data.errorCode || '';
+    const orderStatus = response.data.OrderStatus || response.data.orderStatus || '';
+    
+    // SUCCESS: respCode === '00' AND (ErrorCode === '0' OR empty) AND OrderStatus === '2'
+    const isSuccess = respCode === '00' && 
+                     (errorCode === '0' || errorCode === '') && 
+                     (orderStatus === '2' || orderStatus === 2);
 
-      await this.prisma.appointment.update({
-        where: { id: appointmentId },
-        data: { status: isSuccess ? 'ACCEPTED' : 'REFUSED' },
-      });
+    console.log('📊 Payment evaluation:', { respCode, errorCode, orderStatus, isSuccess });
 
-      return {
-        success: isSuccess,
-        respCode: respCode,
-        respCodeDesc: response.data.params?.respCode_desc || '',
-        errorCode: errorCode,
-        orderStatus: orderStatus,
-        orderId: orderId,
-        orderNumber: response.data.OrderNumber || '',
-        amount: response.data.Amount ? (response.data.Amount / 100).toFixed(2) : '0',
-        approvalCode: response.data.approvalCode || '',
-        actionCodeDescription: response.data.actionCodeDescription || '',
-        pan: response.data.Pan || '',
-        date: new Date().toISOString(),
-      };
-    } catch (error) {
-      console.error('❌ Payment confirmation error:', error.message);
-      throw error;
-    }
+    await this.prisma.appointment.update({
+      where: { id: appointmentId },
+      data: { status: isSuccess ? 'ACCEPTED' : 'REFUSED' },
+    });
+
+    return {
+      success: isSuccess,  // <-- This should be TRUE when respCode is '00'
+      respCode: respCode,
+      respCodeDesc: response.data.params?.respCode_desc || response.data.actionCodeDescription || '',
+      errorCode: errorCode,
+      orderStatus: orderStatus,
+      orderId: orderId,
+      orderNumber: response.data.OrderNumber || response.data.orderNumber || '',
+      amount: response.data.Amount ? (response.data.Amount / 100).toFixed(2) : 
+              response.data.amount ? (response.data.amount / 100).toFixed(2) : '0',
+      approvalCode: response.data.approvalCode || response.data.ApprovalCode || '',
+      actionCodeDescription: response.data.actionCodeDescription || '',
+      pan: response.data.Pan || response.data.pan || '',
+      date: new Date().toISOString(),
+    };
+  } catch (error) {
+    console.error('❌ Payment confirmation error:', error.message);
+    throw error;
   }
+}
 
   async handleFailedPayment(orderId: string, appointmentId: string, language: string) {
     try {
