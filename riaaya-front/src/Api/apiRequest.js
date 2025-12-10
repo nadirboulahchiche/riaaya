@@ -6,8 +6,14 @@ const BASE_URL = API_URL; // Use the API_URL from apiConfig
 
 //Insert Appointment 
 export const createAppointment = async (AnswerData) => {
-    return axios.post(`${BASE_URL}/appointment`, AnswerData);
-};
+    try {
+        const response = await axios.post(`${BASE_URL}/appointment`, AnswerData);
+        return response.data; // Return the data directly
+    } catch (error) {
+        console.error('Error creating appointment:', error);
+        throw error;
+    }
+}
 
 //Get List of Doctors
 export const getDoctors = async () => {
@@ -176,3 +182,4 @@ export const getStatsitcsdeux = async (token) => {
         console.error('Error getting all statstics', error.response?.data || error.message);
     }
 };
+
