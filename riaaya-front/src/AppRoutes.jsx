@@ -13,6 +13,7 @@ import Settings from './Pages/Settings';
 import PublicRoute from './PublicRoutes';
 import Appointments from './Components/Appointmenets';
 import AcceptedAppointments from './Components/AppointmenetsAccepted';
+import PaymentResult from './Pages/PaymentResult';
 
 export default function AppRoutes() {
   const { isLoggedIn, user } = useContext(AuthContext);
@@ -24,7 +25,9 @@ export default function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<MainLayout />} />
       </Route>
-
+      
+      <Route path="/payment-result" element={<PaymentResult />} />
+      
       <Route element={<PrivateRoute />}>
         <Route path="/dashboard" />
       </Route>
@@ -69,3 +72,4 @@ export default function AppRoutes() {
     </Routes >
   );
 }
+
