@@ -103,9 +103,9 @@ async confirmPayment(orderId: string, appointmentId: string, language: string) {
       userName: this.satimConfig.userName,
     };
 
-    // Retry logic for ECONNRESET errors
-    let response = null;
-    let lastError = null;
+// Retry logic for ECONNRESET errors
+    let response: any = null;
+    let lastError: any = null;
     
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
