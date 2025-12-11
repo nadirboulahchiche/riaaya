@@ -82,6 +82,11 @@ export default function PaymentResult() {
                 <p className="text-gray-600">
                   {paymentData.respCodeDesc || paymentData.error || 'Votre transaction a été rejetée'}
                 </p>
+                {paymentData.respCode && paymentData.respCode !== 'null' && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Code de réponse: {paymentData.respCode}
+                  </p>
+                )}
               </>
             )}
           </div>
