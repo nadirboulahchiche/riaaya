@@ -104,8 +104,9 @@ async confirmPayment(orderId: string, appointmentId: string, language: string) {
     };
 
     // Retry logic for ECONNRESET errors
-    let response;
-    let lastError;
+    let response = null;
+    let lastError = null;
+    
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         console.log(`🔄 Attempt ${attempt} to confirm payment...`);
@@ -118,7 +119,7 @@ async confirmPayment(orderId: string, appointmentId: string, language: string) {
         lastError = err;
         console.log(`⚠️ Attempt ${attempt} failed: ${err.message}`);
         if (attempt < 3) {
-          await new Promise(res => setTimeout(res, 2000)); // Wait 2 seconds
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
         }
       }
     }
@@ -126,8 +127,6 @@ async confirmPayment(orderId: string, appointmentId: string, language: string) {
     if (!response) {
       throw lastError;
     }
-
-    const response = await axios.get(this.satimConfig.confirmUrl, { params });
 
     console.log('✅ SATIM Confirmation Response:', JSON.stringify(response.data, null, 2));
 
@@ -149,7 +148,7 @@ async confirmPayment(orderId: string, appointmentId: string, language: string) {
     });
 
     return {
-      success: isSuccess,  // <-- This should be TRUE when respCode is '00'
+      success: isSuccess,
       respCode: respCode,
       respCodeDesc: response.data.params?.respCode_desc || response.data.actionCodeDescription || '',
       errorCode: errorCode,
