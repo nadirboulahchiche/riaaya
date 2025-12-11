@@ -103,6 +103,30 @@ async confirmPayment(orderId: string, appointmentId: string, language: string) {
       userName: this.satimConfig.userName,
     };
 
+    // Retry logic for ECONNRESET errors
+    let response;
+    let lastError;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        console.log(`🔄 Attempt ${attempt} to confirm payment...`);
+        response = await axios.get(this.satimConfig.confirmUrl, { 
+          params, 
+          timeout: 30000 
+        });
+        break; // Success, exit loop
+      } catch (err) {
+        lastError = err;
+        console.log(`⚠️ Attempt ${attempt} failed: ${err.message}`);
+        if (attempt < 3) {
+          await new Promise(res => setTimeout(res, 2000)); // Wait 2 seconds
+        }
+      }
+    }
+    
+    if (!response) {
+      throw lastError;
+    }
+
     const response = await axios.get(this.satimConfig.confirmUrl, { params });
 
     console.log('✅ SATIM Confirmation Response:', JSON.stringify(response.data, null, 2));
